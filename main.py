@@ -4,37 +4,38 @@ from datetime import timedelta
 from moviepy.editor import VideoFileClip
 import os
 
+PORT = 5100
+
 app = Flask(__name__)
 
 model = whisper.load_model("base", download_root="whisperModel")
 print("Whisper model loaded.")
 
-def convert_to_mp3(input_file):
+# def convertToMp3(input_file):
+#     input_path = os.path.join("tempConvertedAudioDir", input_file.filename)
+#     print(f"temp_dir: {input_path}")
 
-    input_path = os.path.join("tempConvertedAudioDir", input_file.filename)
-    print(f"temp_dir: {input_path}")
 
+#     input_file.save(input_path)
+#     print(input_file.filename)
 
-    input_file.save(input_path)
-    print(input_file.filename)
+#     # Determine if the file is MP3 or MP4
+#     if input_file.filename.lower().endswith('.mp4'):
+#         print("received a mp4 file")
 
-    # Determine if the file is MP3 or MP4
-    if input_file.filename.lower().endswith('.mp4'):
-        print("received a mp4 file")
-
-        # Extract audio from MP4 and convert to MP3
-        print(f"converting {input_file.filename} into a mp3 file")
-        video = VideoFileClip(input_path)
-        outputFilename = str(input_file.filename[:-4])+".mp3"
-        video.audio.write_audiofile(outputFilename)
-        return outputFilename
-    elif input_file.filename.lower().endswith('.mp3'):
-        print("received a mp3 file")
-        return input_file.filename
-    else:
-        # Unsupported file format
-        print("received an unsupported file")
-        raise ValueError("Unsupported file format")
+#         # Extract audio from MP4 and convert to MP3
+#         print(f"converting {input_file.filename} into a mp3 file")
+#         video = VideoFileClip(input_path)
+#         outputFilename = str(input_file.filename[:-4])+".mp3"
+#         video.audio.write_audiofile(outputFilename)
+#         return outputFilename
+#     elif input_file.filename.lower().endswith('.mp3'):
+#         print("received a mp3 file")
+#         return input_file.filename
+#     else:
+#         # Unsupported file format
+#         print("received an unsupported file")
+#         raise ValueError("Unsupported file format")
 
 def convertMp3ToTranscript(input_file_path):
     print("transcribing using Whisper")
@@ -52,7 +53,6 @@ def convertTranscriptToSrt(result, originalFilename):
         srtSegment.append(f"{startTime}->{endTime} {text[1:] if text[0] == ' ' else text}\n")
     
     srtFileName = os.path.join("tempMedia", f"{originalFilename}_transcript.srt")
-    # with open(srtFileName, "a") as srtFile:
     srtFile = open(srtFileName, "a")
     for eachSrtSegment in srtSegment:
         srtFile.write(eachSrtSegment)
@@ -79,6 +79,10 @@ def upload_file():
             tempFilePath = os.path.join("tempMedia", originalFilename)
             file.save(tempFilePath)
 
+            # convert input file to mp3 if necessary
+            # tempFilePath = convertToMp3(tempFilePath)
+            srtFilePath = tempFilePath
+
             # process the file using testFunction()
             srtFilePath = convertMp3ToTranscript(tempFilePath)
 
@@ -87,15 +91,8 @@ def upload_file():
             # return the .srt file to the front end 
             return send_file(srtFile, as_attachment=True, download_name=f"{originalFilename}_transcript.srt")
 
-
-        # output_audio_path = convert_to_mp3(file)
-        # # return output_audio_path
-        # result = convertMp3ToTranscript(output_audio_path)
-        # transcriptFile = convertTranscriptToSrt(result)
-        # return send_file(transcriptFile, as_attachment=True)
-
     return render_template('index.html')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5100)
+    app.run(host='0.0.0.0', debug=True, port=PORT)
