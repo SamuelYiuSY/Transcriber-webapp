@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 
-model = whisper.load_model("base")
+model = whisper.load_model("base", download_root="whisperModel")
 print("Whisper model loaded.")
 
 def convert_to_mp3(input_file):
