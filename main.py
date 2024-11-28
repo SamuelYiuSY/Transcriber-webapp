@@ -54,11 +54,20 @@ def uploadFile():
             srtFilePath = os.path.join("tempMedia", originalFilename)
             file.save(srtFilePath)
 
-            srtFilePath = convertMp3ToTranscript(srtFilePath)
-            srtFile = convertTranscriptToSrt(srtFilePath, originalFilename)
+            transcript = convertToTranscript(srtFilePath)
+            srtFile = convertTranscriptToSrt(transcript, originalFilename)
 
             # return the .srt file to the front end 
-            return send_file(srtFile, as_attachment=True, download_name=f"{originalFilename}_transcript.srt")
+            try: 
+                return send_file(srtFile, as_attachment=True, download_name=f"{originalFilename}_transcript.srt")
+            finally:
+                print(f"srtFilePath: {srtFilePath}")
+
+                # remove files from server
+                os.remove(srtFilePath)
+                srtFileName = os.path.join("tempMedia", f"{originalFilename}_transcript.srt")
+                os.remove(srtFileName)
+
 
     return render_template('index.html')
 
