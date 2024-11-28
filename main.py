@@ -12,7 +12,7 @@ model = whisper.load_model("base", download_root="whisperModel")
 print("Whisper model loaded.")
 
 
-def convertMp3ToTranscript(inputFilePath):
+def convertToTranscript(inputFilePath):
     print("transcribing using Whisper")
     result = model.transcribe(inputFilePath)
     return result
