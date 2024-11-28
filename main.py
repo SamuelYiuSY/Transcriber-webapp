@@ -11,35 +11,10 @@ app = Flask(__name__)
 model = whisper.load_model("base", download_root="whisperModel")
 print("Whisper model loaded.")
 
-# def convertToMp3(input_file):
-#     input_path = os.path.join("tempConvertedAudioDir", input_file.filename)
-#     print(f"temp_dir: {input_path}")
 
-
-#     input_file.save(input_path)
-#     print(input_file.filename)
-
-#     # Determine if the file is MP3 or MP4
-#     if input_file.filename.lower().endswith('.mp4'):
-#         print("received a mp4 file")
-
-#         # Extract audio from MP4 and convert to MP3
-#         print(f"converting {input_file.filename} into a mp3 file")
-#         video = VideoFileClip(input_path)
-#         outputFilename = str(input_file.filename[:-4])+".mp3"
-#         video.audio.write_audiofile(outputFilename)
-#         return outputFilename
-#     elif input_file.filename.lower().endswith('.mp3'):
-#         print("received a mp3 file")
-#         return input_file.filename
-#     else:
-#         # Unsupported file format
-#         print("received an unsupported file")
-#         raise ValueError("Unsupported file format")
-
-def convertMp3ToTranscript(input_file_path):
+def convertMp3ToTranscript(inputFilePath):
     print("transcribing using Whisper")
-    result = model.transcribe(input_file_path)
+    result = model.transcribe(inputFilePath)
     return result
 
 def convertTranscriptToSrt(result, originalFilename):
@@ -66,7 +41,7 @@ def convertTranscriptToSrt(result, originalFilename):
 
 # @app.route('/upload', methods=['POST'])
 @app.route('/', methods=['GET', 'POST'])
-def upload_file():
+def uploadFile():
     if request.method == 'POST':
         if 'file' not in request.files:
             return "No file part", 400
@@ -76,16 +51,10 @@ def upload_file():
 
         if file:
             # save the uploaded file temporarily
-            tempFilePath = os.path.join("tempMedia", originalFilename)
-            file.save(tempFilePath)
+            srtFilePath = os.path.join("tempMedia", originalFilename)
+            file.save(srtFilePath)
 
-            # convert input file to mp3 if necessary
-            # tempFilePath = convertToMp3(tempFilePath)
-            srtFilePath = tempFilePath
-
-            # process the file using testFunction()
-            srtFilePath = convertMp3ToTranscript(tempFilePath)
-
+            srtFilePath = convertMp3ToTranscript(srtFilePath)
             srtFile = convertTranscriptToSrt(srtFilePath, originalFilename)
 
             # return the .srt file to the front end 
