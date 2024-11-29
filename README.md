@@ -1,3 +1,6 @@
+### Description
+A full-stack web app that transcribes videos into .srt subtitle files, with a Python Flask backend utilising OpenAI Whisper.
+
 ### Demo
 Free trial on [Google Cloud](https://transcriber-810769139906.europe-west2.run.app). <br>
 Please note that the platform has a cold start delay, which may take a moment when you first access it, and currently only supports file uploads up to 32MB in size. 
