@@ -26,7 +26,6 @@ def convertTranscriptToSrt(result, originalFilename):
         endTime = f"{str(timedelta(seconds=int(eachSegment['end'])))}"
         text = eachSegment["text"]
         id = eachSegment["id"] + 1
-        # srtSegment.append(f"{startTime}->{endTime} {text[1:] if text[0] == ' ' else text}\n")
         srtSegment.append(f"{id}\n{startTime} --> {endTime}\n{text[1:] if text[0] == ' ' else text}\n\n")
 
     srtFileName = os.path.join("tempMedia", f"{originalFilename}_transcript.srt")
