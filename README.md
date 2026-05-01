@@ -1,3 +1,5 @@
+![image](Screenshot.png)
+
 ### Description
 A full-stack web app that transcribes videos into .srt subtitle files, with a Python Flask backend utilising OpenAI Whisper.
 
