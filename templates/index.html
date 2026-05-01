@@ -1,84 +1,540 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Transcriber</title>
     <style>
-      body {
-        height: 100vh;
-        display: flex;
+      :root {
+        color-scheme: light;
+        --background: #fafafa;
+        --foreground: #0f172a;
+        --muted: #f4f4f5;
+        --muted-foreground: #64748b;
+        --card: rgba(255, 255, 255, 0.88);
+        --card-foreground: #0f172a;
+        --border: rgba(15, 23, 42, 0.1);
+        --input: rgba(15, 23, 42, 0.08);
+        --primary: #18181b;
+        --primary-foreground: #fafafa;
+        --accent: #f1f5f9;
+        --accent-foreground: #0f172a;
+        --ring: rgba(15, 23, 42, 0.15);
+        --shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+        --radius: 24px;
+      }
 
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          "Geist",
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(148, 163, 184, 0.16), transparent 34%),
+          linear-gradient(180deg, #fcfcfd 0%, #f8fafc 100%);
+        color: var(--foreground);
+      }
+
+      .page {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .shell {
+        width: min(100%, 760px);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) + 4px);
+        background: var(--card);
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow);
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto auto 0;
+        width: 100%;
+        height: 160px;
+        background: linear-gradient(
+          135deg,
+          rgba(15, 23, 42, 0.04),
+          rgba(148, 163, 184, 0.14)
+        );
+        pointer-events: none;
+      }
+
+      .hero-content {
+        position: relative;
+        padding: 32px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        text-align: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
+
+      .hero h1 {
+        margin: 18px 0 10px;
+        font-size: clamp(2rem, 5vw, 3.25rem);
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 560px;
+        font-size: 1rem;
+        line-height: 1.65;
+        color: var(--muted-foreground);
+      }
+
+      .upload-card {
+        margin-top: 28px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
       }
 
       .drop-zone {
-        border: 2px dashed #ccc;
-        padding: 20px;
-        width: 80vw;
-        height: 80vh;
+        width: 100%;
+        padding: 28px;
+        border: 1.5px dashed rgba(15, 23, 42, 0.18);
+        border-radius: calc(var(--radius) - 6px);
+        background:
+          linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.96));
         display: flex;
         flex-direction: column;
+        gap: 18px;
         align-items: center;
         justify-content: center;
+        text-align: center;
         cursor: pointer;
+        transition:
+          border-color 180ms ease,
+          background 180ms ease,
+          box-shadow 180ms ease,
+          transform 180ms ease;
+      }
+
+      .drop-zone:hover {
+        border-color: rgba(15, 23, 42, 0.28);
+        transform: translateY(-1px);
+      }
+
+      .drop-zone:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 6px var(--ring);
       }
 
       .drop-zone.dragover {
-        background-color: #f0f0f0;
+        border-color: rgba(15, 23, 42, 0.42);
+        background:
+          linear-gradient(180deg, rgba(241, 245, 249, 0.96), rgba(255, 255, 255, 1));
+        box-shadow: 0 0 0 6px rgba(15, 23, 42, 0.06);
+      }
+
+      .icon-wrap {
+        width: 64px;
+        height: 64px;
+        display: grid;
+        place-items: center;
+        border-radius: 20px;
+        background: var(--accent);
+        color: var(--accent-foreground);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+      }
+
+      .upload-copy h2 {
+        margin: 0 0 8px;
+        font-size: 1.35rem;
+        letter-spacing: -0.03em;
+      }
+
+      .upload-copy p {
+        margin: 0;
+        color: var(--muted-foreground);
+        line-height: 1.6;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          transform 180ms ease,
+          opacity 180ms ease,
+          box-shadow 180ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+      }
+
+      .button:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 6px var(--ring);
+      }
+
+      .button[disabled] {
+        opacity: 0.7;
+        cursor: wait;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .pill {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--muted);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        color: var(--muted-foreground);
+        font-size: 0.9rem;
+      }
+
+      .status {
+        min-height: 24px;
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.95rem;
+      }
+
+      .status strong {
+        color: var(--card-foreground);
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .is-uploading .drop-zone {
+        pointer-events: none;
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(250, 250, 250, 0.32);
+        border-top-color: rgba(250, 250, 250, 1);
+        border-radius: 999px;
+        animation: spin 900ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hero-content {
+          padding: 24px;
+        }
+
+        .drop-zone {
+          padding: 22px;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="dropZone" class="drop-zone">
-      <h1>Transcriber</h1>
-      <form
-        id="uploadForm"
-        action="/"
-        method="post"
-        enctype="multipart/form-data"
-      >
-        <input id="fileInput" type="file" name="file" />
-      </form>
-    </div>
+    <main class="page">
+      <section class="shell">
+        <div class="hero">
+          <div class="hero-content">
+            <span class="eyebrow">Transcriber</span>
+            <p>
+              Drop a file, let Whisper process it, and your subtitle file will
+              download automatically when it is ready.
+            </p>
+
+            <div class="upload-card">
+              <div
+                id="dropZone"
+                class="drop-zone"
+                role="button"
+                tabindex="0"
+                aria-controls="fileInput"
+                aria-describedby="uploadStatus"
+              >
+                <div class="icon-wrap" aria-hidden="true">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M12 3v12" />
+                    <path d="m7 8 5-5 5 5" />
+                    <path d="M20 16.5a3.5 3.5 0 0 1-3.5 3.5h-9A4.5 4.5 0 0 1 7 11a5.5 5.5 0 0 1 10.7-1.7A4 4 0 0 1 20 16.5Z" />
+                  </svg>
+                </div>
+
+                <div class="upload-copy">
+                  <h2>Choose a media file</h2>
+                  <p>Drag it here or browse from your device.</p>
+                </div>
+
+                <div class="actions">
+                  <button id="browseButton" class="button" type="button">
+                    Select file
+                  </button>
+                </div>
+
+                <div class="meta" aria-hidden="true">
+                  <span class="pill">Audio or video</span>
+                </div>
+
+                <p id="uploadStatus" class="status" aria-live="polite">
+                  No file selected yet.
+                </p>
+              </div>
+            </div>
+
+            <form
+              id="uploadForm"
+              action="/"
+              method="post"
+              enctype="multipart/form-data"
+            >
+              <label class="visually-hidden" for="fileInput">Upload media file</label>
+              <input
+                id="fileInput"
+                class="visually-hidden"
+                type="file"
+                name="file"
+                accept="audio/*,video/*"
+              />
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <script>
-      let dropZone = document.getElementById("dropZone");
-      let fileInput = document.getElementById("fileInput");
-      let uploadForm = document.getElementById("uploadForm");
+      const body = document.body;
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+      const uploadForm = document.getElementById("uploadForm");
+      const browseButton = document.getElementById("browseButton");
+      const uploadStatus = document.getElementById("uploadStatus");
+      const defaultButtonLabel = "Select file";
 
-      dropZone.addEventListener("click", function () {
-        fileInput.click();
+      function openPicker() {
+        if (!body.classList.contains("is-uploading")) {
+          fileInput.click();
+        }
+      }
+
+      function setStatus(prefix, message) {
+        uploadStatus.textContent = "";
+
+        if (!prefix) {
+          uploadStatus.textContent = message;
+          return;
+        }
+
+        const label = document.createElement("strong");
+        label.textContent = prefix;
+        uploadStatus.append(label, " " + message);
+      }
+
+      function setUploadingState(isUploading) {
+        if (!isUploading) {
+          body.classList.remove("is-uploading");
+          browseButton.disabled = false;
+          browseButton.textContent = defaultButtonLabel;
+          return;
+        }
+
+        body.classList.add("is-uploading");
+        browseButton.disabled = true;
+        browseButton.replaceChildren();
+
+        const spinner = document.createElement("span");
+        spinner.className = "spinner";
+        spinner.setAttribute("aria-hidden", "true");
+        browseButton.append(spinner, "Transcribing...");
+      }
+
+      function getDownloadName(contentDisposition, fallbackName) {
+        if (!contentDisposition) {
+          return fallbackName;
+        }
+
+        const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+        if (utf8Match) {
+          return decodeURIComponent(utf8Match[1]);
+        }
+
+        const basicMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+        if (basicMatch) {
+          return basicMatch[1];
+        }
+
+        return fallbackName;
+      }
+
+      function triggerDownload(blob, filename) {
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
+      }
+
+      async function submitFile(file) {
+        if (!file) {
+          return;
+        }
+
+        setStatus("Ready:", file.name);
+        setUploadingState(true);
+        setStatus("Working:", "Uploading and generating subtitles.");
+
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+
+        try {
+          const response = await fetch(uploadForm.action, {
+            method: uploadForm.method,
+            body: formData,
+            credentials: "same-origin",
+          });
+
+          if (!response.ok) {
+            const message = (await response.text()) || "Upload failed.";
+            throw new Error(message);
+          }
+
+          const downloadName = getDownloadName(
+            response.headers.get("Content-Disposition"),
+            file.name + "_transcript.srt"
+          );
+          const blob = await response.blob();
+          triggerDownload(blob, downloadName);
+          setStatus("Done:", "Transcript downloaded successfully.");
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Something went wrong while transcribing.";
+          setStatus("Upload failed:", message);
+        } finally {
+          fileInput.value = "";
+          setUploadingState(false);
+        }
+      }
+
+      dropZone.addEventListener("click", openPicker);
+      browseButton.addEventListener("click", function (event) {
+        event.stopPropagation();
+        openPicker();
       });
 
-      fileInput.addEventListener("change", function () {
-        if (fileInput.files.length > 0) {
-          uploadForm.submit();
+      dropZone.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openPicker();
         }
       });
 
-      dropZone.addEventListener("dragover", function (e) {
-        e.preventDefault();
-        this.classList.add("dragover");
+      fileInput.addEventListener("change", function () {
+        const file = fileInput.files[0];
+        if (file) {
+          submitFile(file);
+        }
       });
 
-      dropZone.addEventListener("dragleave", function (e) {
-        e.preventDefault();
-        this.classList.remove("dragover");
+      ["dragenter", "dragover"].forEach(function (eventName) {
+        dropZone.addEventListener(eventName, function (event) {
+          event.preventDefault();
+          dropZone.classList.add("dragover");
+        });
       });
 
-      uploadForm.addEventListener("submit", function (e) {
-        e.preventDefault();
+      ["dragleave", "dragend"].forEach(function (eventName) {
+        dropZone.addEventListener(eventName, function (event) {
+          event.preventDefault();
+          dropZone.classList.remove("dragover");
+        });
       });
 
-      dropZone.addEventListener("drop", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.classList.remove("dragover");
+      dropZone.addEventListener("drop", function (event) {
+        event.preventDefault();
+        dropZone.classList.remove("dragover");
 
-        let file = e.dataTransfer.files[0];
-        fileInput.files = file;
-        uploadForm.submit();
+        const file = event.dataTransfer.files[0];
+        if (file) {
+          submitFile(file);
+        }
       });
     </script>
   </body>
